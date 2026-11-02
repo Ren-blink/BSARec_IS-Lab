@@ -132,10 +132,18 @@ def process(data_name='Beauty'):
                 f'Iteraction Num: {interact_num}, Avg Sequence Length: {avg_seqlen:.1f}, Sparsity: {sparsity:.2f}%'
     print(show_info)
 
+    # Menambahkan fungsi untuk menyimpan data ke file, termasuk time intervals/timestamp
     item_file = '../'+ data_name + '.txt'
-    with open(item_file, 'w') as out:
+    # time_file untuk menyimpan time intervals/timestamp dengan format nama sedemikian rupa
+    time_file = '../'+ data_name + '_time.txt'
+    # menyimpan item_file dan time_file sebagai f_time
+    with open(item_file, 'w') as f_item, \
+         open(time_file, 'w') as f_time:
         for user, items in user_items.items():
-            out.write(user + ' ' + ' '.join(items) + '\n')
+            # Memformat data menjadi intervals, mirip dengan format f_item, tetapi dengan menambahkan time intervals/timestamp
+            f_item.write(user + ' ' + ' '.join(items) + '\n')
+            intervals = time_interval[user]
+            f_time.write(user + ' ' + ' '.join(map(str, intervals)) + '\n')
 
 if __name__ == "__main__":
     dataname = sys.argv[1]
