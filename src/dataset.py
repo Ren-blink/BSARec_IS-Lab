@@ -7,13 +7,15 @@ from torch.utils.data import Dataset, DataLoader, RandomSampler, SequentialSampl
 import random
 
 class RecDataset(Dataset):
-    def __init__(self, args, user_seq, test_neg_items=None, data_type='train'):
+    def __init__(self, args, user_seq, time_seq=None, test_neg_items=None, data_type='train'):
         self.args = args
         self.user_seq = []
+        self.time_seq = [] # menambahkan atribut time_seq untuk menyimpan informasi waktu jika diperlukan
         self.max_len = args.max_seq_length
         self.user_ids = []
         self.contrastive_learning = args.model_type.lower() in ['fearec', 'duorec']
         self.data_type = data_type
+        self.has_time = time_seq is not None # menentukan apakah dataset memiliki informasi waktu
 
         if self.data_type=='train':
             for user, seq in enumerate(user_seq):
@@ -21,6 +23,12 @@ class RecDataset(Dataset):
                 for i in range(len(input_ids)):
                     self.user_seq.append(input_ids[:i + 1])
                     self.user_ids.append(user)
+                    # menambahkan time_seq paralel
+                    if self.has_time:
+                        t = time_seq[user][-(self.max_len + 2):-2]
+                        self.time_seq.append(t[:i + 1])
+                    else:
+                        self.time_seq.append(None)  # jika tidak ada informasi waktu, tambahkan None
         elif self.data_type=='valid':
             for sequence in user_seq:
                 self.user_seq.append(sequence[:-1])
@@ -195,6 +203,31 @@ def get_user_seqs(data_file):
     num_users = len(lines)
 
     return user_seq, max_item, num_users
+
+# fungsi untuk membaca file _time.txt dan menambahkan tensor interval ke dataloader.
+# Fungsi ini digunakan untuk model yang memanfaatkan informasi waktu, seperti Time-LSTM.
+def get_user_seqs_test(data_file, time_file):
+    # membaca item sequence
+    lines = open(data_file).readlines()
+    user_seq = []
+    item_set = set()
+    for line in lines:
+        user, items = line.strip().split(' ', 1)
+        items = [int(item) for item in items]
+        user_seq.append(items)
+        item_set |= set(items)
+    max_item = max(item_set)
+    num_users = len(lines)
+
+    # membaca time interval/timestamp
+    time_lines = open(time_file).readlines()
+    time_seq = []
+    for line in time_lines:
+        _, intervals = line.strip().split(' ', 1)
+        intervals = [int(interval) for interval in intervals.split(' ')]
+        time_seq.append(intervals)
+
+    return user_seq, time_seq, max_item, num_users
 
 def get_seq_dic(args):
 
