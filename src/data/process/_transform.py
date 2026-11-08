@@ -35,7 +35,7 @@ def Amazon(dataset_name, rating_score):
     --"reviewTime": "09 13, 2009"
     '''
     datas = []
-    data_flie = './raw/{}.json'.format(dataset_name)
+    data_flie = './raw/{}/{}.json'.format(dataset_name, dataset_name) # Mengubah direktori file agar lebih rapi
     lines = open(data_flie).readlines()
     for line in tqdm.tqdm(lines):
         inter = json.loads(line.strip())
@@ -88,7 +88,7 @@ def LastFM():
 
     for line in tqdm.tqdm(lines[1:]):
         user, item, _, timestamp = line.strip().split('\t')
-        datas.append((user, item, int(timestamp)))
+        datas.append((user, item, int(timestamp) // 1000)) # ditambahkan 1000 untuk mengonversikan menjadi detik
 
     return datas
 
