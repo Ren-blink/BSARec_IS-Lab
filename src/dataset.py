@@ -34,6 +34,10 @@ class RecDataset(Dataset):
                 self.user_seq.append(sequence[:-1])
         else:
             self.user_seq = user_seq
+            if self.has_time:
+                self.time_seq = time_seq
+            else:
+                self.time_seq = [None] * len(user_seq)  # jika tidak ada informasi waktu, tambahkan None
 
         self.test_neg_items = test_neg_items
 
